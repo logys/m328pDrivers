@@ -82,7 +82,7 @@ void setPinDirection(int8_t pin_number, PIN_DIR direction)
 {
 	int8_t port = gpio_table[pin_number][0];
 	int8_t pin = gpio_table[pin_number][1];
-	volatile uint8_t * port_register = port_table[port];
+	volatile uint8_t * port_register = ddr_table[port];
 	if(direction == INPUT)
 		*port_register &= ~(1<<pin);
 	else if(direction == OUTPUT)
