@@ -23,10 +23,18 @@
 
 #include <stdint.h>
 
+typedef enum {INPUT=0, OUTPUT} PIN_DIR;
 typedef enum {LOW=0, HIGH} PIN_LEVEL;
-typedef enum {INPUT=0, OUTPUT}PIN_DIR;
+typedef struct Pin{
+	uint8_t number;
+	volatile uint8_t *ddrx;
+	volatile uint8_t *portx;
+	volatile uint8_t *pinx;
+}Pin;
 
-void setPinLevel(int8_t pin_number, PIN_LEVEL level);
-void setPinDirection(int8_t pin_number, PIN_DIR direction);
+Pin gpio_create(uint8_t pin_number, PIN_DIR direction, PIN_LEVEL level);
+void gpio_setPinDirection(Pin * pin, PIN_DIR direction);
+void gpio_setPinLevel(Pin * pin, PIN_LEVEL level);
+PIN_LEVEL gpio_pinLevel(Pin * pin);
 
 #endif// GPIO_H

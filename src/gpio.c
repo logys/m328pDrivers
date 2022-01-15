@@ -20,10 +20,12 @@
 
 #include "gpio.h"
 #include <avr/io.h>
+#include <assert.h>
 
 enum {portB, portC, portD};
 
 const int8_t gpio_table[][2] = {
+	{-1, -1}, //pin 0 dummy
 	{-1, -1}, //pin 1
 	{portD, PD0},
 	{portD, PD1},
@@ -60,31 +62,56 @@ volatile uint8_t * const port_table[] = {
 	&PORTD
 };
 
-
 volatile uint8_t * const ddr_table[] = {
 	&DDRB,
 	&DDRC,
 	&DDRD
 };
 
-void setPinLevel(int8_t pin_number, PIN_LEVEL level)
+volatile uint8_t * const pin_table[] = {
+	&PINB,
+	&PINC,
+	&PIND
+};
+
+void gpio_setPinDirection(Pin * pin, PIN_DIR direction)
 {
-	int8_t port = gpio_table[pin_number][0];
-	int8_t pin = gpio_table[pin_number][1];
-	volatile uint8_t * port_register = port_table[port];
-	if(level == LOW)
-		*port_register &= ~(1<<pin);
-	else if(level == HIGH)
-		*port_register |= 1<<pin;
+	if(direction == INPUT)
+		*pin->ddrx &= ~(1<<pin->number);
+	else if(direction == OUTPUT)
+		*pin->ddrx |=  1<<pin->number;
 }
 
-void setPinDirection(int8_t pin_number, PIN_DIR direction)
+void gpio_setPinLevel(Pin * pin, PIN_LEVEL level)
 {
-	int8_t port = gpio_table[pin_number][0];
-	int8_t pin = gpio_table[pin_number][1];
-	volatile uint8_t * port_register = ddr_table[port];
-	if(direction == INPUT)
-		*port_register &= ~(1<<pin);
-	else if(direction == OUTPUT)
-		*port_register |= 1<<pin;
+	if(level == LOW)
+		*pin->portx &= ~(1<<pin->number);
+	else if(level == HIGH)
+		*pin->portx |=  1<<pin->number;
+}
+
+PIN_LEVEL gpio_pinLevel(Pin * pin)
+{
+	if (*pin->pinx & (1<<pin->number))
+		return HIGH;
+	else 
+		return LOW;
+}
+
+Pin gpio_create(uint8_t pin_number, PIN_DIR direction, PIN_LEVEL level)
+{
+	uint8_t gpio_port = gpio_table[pin_number][0];
+	assert(gpio_port != -1);
+	volatile uint8_t * ddrx = ddr_table[gpio_port];
+	volatile uint8_t * portx = port_table[gpio_port];
+	volatile uint8_t * pinx = pin_table[gpio_port];
+	uint8_t gpio_pin = gpio_table[pin_number][1];
+	Pin pin = {.number = gpio_pin,
+		.ddrx = ddrx,
+		.portx = portx,
+		.pinx = pinx
+	};
+	gpio_setPinDirection(&pin, direction);
+	gpio_setPinLevel(&pin, level);
+	return pin;
 }
