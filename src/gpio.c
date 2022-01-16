@@ -21,10 +21,11 @@
 #include "gpio.h"
 #include <avr/io.h>
 #include <assert.h>
+#include <avr/pgmspace.h>
 
 enum {portB, portC, portD};
 
-const int8_t gpio_table[][2] = {
+const int8_t gpio_table[][2] PROGMEM = {
 	{-1, -1}, //pin 0 dummy
 	{-1, -1}, //pin 1
 	{portD, PD0},
@@ -56,19 +57,19 @@ const int8_t gpio_table[][2] = {
 	{portC, PC5}, //pin 28
 };
 
-volatile uint8_t * const port_table[] = {
+volatile uint8_t * const port_table[] PROGMEM = {
 	&PORTB,
 	&PORTC,
 	&PORTD
 };
 
-volatile uint8_t * const ddr_table[] = {
+volatile uint8_t * const ddr_table[] PROGMEM = {
 	&DDRB,
 	&DDRC,
 	&DDRD
 };
 
-volatile uint8_t * const pin_table[] = {
+volatile uint8_t * const pin_table[] PROGMEM = {
 	&PINB,
 	&PINC,
 	&PIND
@@ -100,12 +101,13 @@ PIN_LEVEL gpio_pinLevel(Pin * pin)
 
 Pin gpio_create(uint8_t pin_number, PIN_DIR direction, PIN_LEVEL level)
 {
-	uint8_t gpio_port = gpio_table[pin_number][0];
+	assert(pin_number > 0 && pin_number <29);
+	uint8_t gpio_port = pgm_read_byte(&gpio_table[pin_number][0]);
 	assert(gpio_port != -1);
-	volatile uint8_t * ddrx = ddr_table[gpio_port];
-	volatile uint8_t * portx = port_table[gpio_port];
-	volatile uint8_t * pinx = pin_table[gpio_port];
-	uint8_t gpio_pin = gpio_table[pin_number][1];
+	volatile uint8_t * ddrx = pgm_read_ptr(&ddr_table[gpio_port]);
+	volatile uint8_t * portx = pgm_read_ptr(&port_table[gpio_port]);
+	volatile uint8_t * pinx = pgm_read_ptr(&pin_table[gpio_port]);
+	uint8_t gpio_pin = pgm_read_byte(&gpio_table[pin_number][1]);
 	Pin pin = {.number = gpio_pin,
 		.ddrx = ddrx,
 		.portx = portx,
