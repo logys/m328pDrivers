@@ -25,14 +25,14 @@
 
 typedef enum {INPUT=0, OUTPUT} PIN_DIR;
 typedef enum {LOW=0, HIGH} PIN_LEVEL;
+typedef enum {portB=0x03, portC=0x06, portD=0x09}PORTBASE;
+
 typedef struct Pin{
-	uint8_t number;
-	volatile uint8_t *ddrx;
-	volatile uint8_t *portx;
-	volatile uint8_t *pinx;
+	uint8_t gpio_pin;
+	PORTBASE port_base;
 }Pin;
 
-Pin gpio_create(uint8_t pin_number, PIN_DIR direction, PIN_LEVEL level);
+Pin gpio_create(PORTBASE port, uint8_t gpio_pin, PIN_DIR direction, PIN_LEVEL level);
 void gpio_setPinDirection(Pin * pin, PIN_DIR direction);
 void gpio_setPinLevel(Pin * pin, PIN_LEVEL level);
 PIN_LEVEL gpio_pinLevel(Pin * pin);
